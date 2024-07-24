@@ -26,13 +26,13 @@ try:
     raise Exception('Informations de connexion incorrecte !')
 
   # Affichage de la liste
-  devices = []
+  devices = c.getdevices()
   while len(devices) == 0:
-    devices = c.getdevices()
     print('Pas de périphérique trouvé, on essaie encore !')
     time.sleep(10)
+    devices = c.getdevices()
 
-  print("List des périphériques : \n", json.dumps(devices, indent=2))
+  print("Liste des périphériques : \n", json.dumps(devices, indent=2))
 
 except Exception as err:
   print('inventaro: ' + str(err) + ' line ' + format(sys.exc_info()[-1].tb_lineno))
