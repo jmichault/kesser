@@ -89,7 +89,7 @@ print("\nModel of device: " + d["id"] + "\n", json.dumps(model, indent=2))
 | | | | |  bit1 : Déshumidification intelligente et prévention de la moisissure
 | | | | |  bit2 : Nettoyage de l'évaporateur
 | | | | |  bit3 : lumière
-| | | | |  bit4 : bourdonner
+| | | | |  bit4 : bip (si 1 : l'appareil bip à chaque commande)
 | | | | |  bit5 : en bonne santé
 |125 | ro | airquality        | enum   | qualité de l'air ;["great,"good","middle","bad","verybad","veryverybad"]
 |126 | rw | up_down_freeze    | enum   | balayage haut/bas ; 0-5 (Aucun, haut-bas, haut, bas

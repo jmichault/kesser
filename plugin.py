@@ -48,33 +48,48 @@ class BasePlugin:
       mode= [ "0", "auto" , "silencieux","très lent","lent","moyen","fort","très fort","max." ]
       options['LevelNames'] = '|'.join(mode)
       Domoticz.Device(Name='Kesser' + ' (Ventilateur)', DeviceID=deviceId, Unit=5, Type=244, Subtype=62, Switchtype=18, Options=options, Image=7, Used=1).Create()
+    if ( len(Devices) <= 5 ) :
+      options={'LevelOffHidden':'false' , 'LevelActions':'' , 'SelectorStyle':'1'}
+      # mode= [ "Aucun" , "Haut-Bas","Haut","Bas" ]
+      mode= [ "Aucun" , "↕","▲","▼" ]
+      options['LevelNames'] = '|'.join(mode)
+      Domoticz.Device(Name='Kesser' + ' (Balayage vertical)', DeviceID=deviceId, Unit=6, Type=244, Subtype=62, Switchtype=18, Options=options, Image=23, Used=1).Create()
+      options={'LevelOffHidden':'false' , 'LevelActions':'' , 'SelectorStyle':'1'}
+      # mode= [ "Aucun" , "gauche-droite", "gauche-centre" , "central" , "centre-droite" , "gauche" , "droit" , "grand-angle" ]
+      mode= [ "Aucun" , " ◄► ", "◄." , ".►" , "." , "◄" , "►" , "◄--►" ]
+      options['LevelNames'] = '|'.join(mode)
+      Domoticz.Device(Name='Kesser' + ' (Balayage horizontal)', DeviceID=deviceId, Unit=7, Type=244, Subtype=62, Switchtype=18, Options=options, Image=23, Used=1).Create()
 
   def onCommand(self, Unit, Command, Level, Color):
     Domoticz.Debug("onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + "', Level: " + str(Level) + "', Color: " + str(Color))
     deviceIp = Parameters['Address']
     deviceId = Parameters['Mode2']
     deviceKey = Parameters['Mode3']
+    d = tinytuya.Device( dev_id=deviceId, address=deviceIp, local_key=deviceKey,version=3.3)
+    d.set_value(123,"0000")
     match Unit :
      case 1: # marche/arret
       if Command=='On':
-        d = tinytuya.Device( dev_id=deviceId, address=deviceIp, local_key=deviceKey,version=3.3)
         d.set_value(1,True)
+        d.set_value(123,0)
       elif Command=='Off':
-        d = tinytuya.Device( dev_id=deviceId, address=deviceIp, local_key=deviceKey,version=3.3)
         d.set_value(1,False)
      case 2: # thermostat
-        d = tinytuya.Device( dev_id=deviceId, address=deviceIp, local_key=deviceKey,version=3.3)
         Domoticz.Log("nouvelle température="+str(int(Level*10)))
         d.set_value(2,int(Level*10))
      # case 3: # temperature courante : pas de commande
      case 4: # mode
         mode = {10:"cold",20:"hot",30:"wet",40:"wind",50:"auto" }.get(Level,0)
-        d = tinytuya.Device( dev_id=deviceId, address=deviceIp, local_key=deviceKey,version=3.3)
         d.set_value(4,mode)
      case 5: # vitesse du ventilateur
         windspeed = {10:"auto" , 20:"mute",30:"low",40:"mid_low",50:"mid",60:"mid_high",70:"high",80:"strong" }.get(Level,0)
-        d = tinytuya.Device( dev_id=deviceId, address=deviceIp, local_key=deviceKey,version=3.3)
         d.set_value(5,windspeed)
+     case 6: # balayage vertical
+        mode = int(Level/10)
+        d.set_value(113,str(mode))
+     case 7: # balayage horizontal
+        mode = int(Level/10)
+        d.set_value(114,str(mode))
     self.onHeartbeat()
 
 
@@ -107,6 +122,12 @@ class BasePlugin:
     windspeed = { "auto":10 , "mute":20,"low":30, "mid_low":40,"mid":50,"mid_high":60,"high":70,"strong":80 }.get(data['dps']['5'],0)
     if Devices[5].nValue != windspeed :
       Devices[5].Update(nValue=int(windspeed),sValue=str(windspeed))
+    balayageV = int(data['dps']['113'])*10
+    if Devices[6].nValue != balayageV :
+      Devices[6].Update(nValue=int(balayageV),sValue=str(balayageV))
+    balayageH = int(data['dps']['114'])*10
+    if Devices[7].nValue != balayageH :
+      Devices[7].Update(nValue=int(balayageH),sValue=str(balayageH))
 
 global _plugin
 _plugin = BasePlugin()
